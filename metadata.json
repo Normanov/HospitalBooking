@@ -1,0 +1,6 @@
+{
+  "name": "DentaCore CRM - Smart Dental & Clinic Architecture MVP",
+  "description": "Production-ready SRS & Technical Architecture specification alongside interactive prototype for DentaCore Dental CRM and Online Booking platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

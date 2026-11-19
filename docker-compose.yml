@@ -1,0 +1,76 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: dentacore
+      POSTGRES_USER: dentacore
+      POSTGRES_PASSWORD: ${DENTACORE_DB_PASSWORD:?Set DENTACORE_DB_PASSWORD in .env}
+    volumes:
+      - dentacore-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dentacore -d dentacore"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+    networks:
+      default:
+        aliases:
+          - postgres
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: DentaCore.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      Database__Provider: PostgreSQL
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=dentacore;Username=dentacore;Password=${DENTACORE_DB_PASSWORD:?Set DENTACORE_DB_PASSWORD in .env}
+      Jwt__Key: ${DENTACORE_JWT_KEY:?Set DENTACORE_JWT_KEY in .env}
+      Jwt__Issuer: DentaCore
+      Jwt__Audience: DentaCore.Clients
+      Web__ReverseProxyAddress: 172.31.240.10
+      Web__AllowedOrigins__0: http://localhost:8080
+      Web__AllowedOrigins__1: http://127.0.0.1:8080
+      Web__AllowedOrigins__2: http://localhost:8081
+      Web__AllowedOrigins__3: http://127.0.0.1:8081
+      Security__CookiesRequireHttps: ${DENTACORE_COOKIES_REQUIRE_HTTPS:-false}
+      DENTACORE_BOOTSTRAP_ADMIN_EMAIL: ${DENTACORE_BOOTSTRAP_ADMIN_EMAIL:-}
+      DENTACORE_BOOTSTRAP_ADMIN_PASSWORD: ${DENTACORE_BOOTSTRAP_ADMIN_PASSWORD:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      default:
+        aliases:
+          - api
+    volumes:
+      - dentacore-data-protection-v2:/home/app/.aspnet/DataProtection-Keys
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "${DENTACORE_WEB_PORT:-8080}:80"
+      - "${DENTACORE_ADMIN_PORT:-8081}:81"
+    networks:
+      default:
+        ipv4_address: 172.31.240.10
+        aliases:
+          - web
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  dentacore-postgres:
+  dentacore-data-protection-v2:
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.31.240.0/24
