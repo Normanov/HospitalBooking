@@ -9,6 +9,7 @@ import {
   Sparkles,
   Users,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { UserRole } from '../types/dentacore';
 
 interface NavbarProps {
@@ -338,14 +339,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               return (
-                <button
+                <motion.button
                   key={item.id}
                   ref={(el) => {
                     desktopBtnRefs.current[item.id] = el;
                   }}
                   type="button"
                   onClick={() => setActiveTab(item.id)}
-                  className={`group/nav relative z-10 flex items-center gap-1.5 rounded-xl px-2.5 py-2 xl:px-3 text-[11px] xl:text-xs font-bold tracking-tight transition-all duration-200 whitespace-nowrap cursor-pointer active:scale-[0.97] ${
+                  whileHover={{ scale: isActive ? 1 : 1.07, y: isActive ? 0 : -1 }}
+                  whileTap={{ scale: 0.94 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+                  className={`group/nav relative z-10 flex items-center gap-1.5 rounded-xl px-2.5 py-2 xl:px-3 text-[11px] xl:text-xs font-bold tracking-tight whitespace-nowrap cursor-pointer ${
                     isActive
                       ? `${!desktopPill.ready ? 'bg-slate-900 shadow-xs' : ''} text-white`
                       : 'text-slate-600 hover:text-slate-950 hover:bg-white/55'
@@ -377,7 +381,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       {item.count}
                     </span>
                   )}
-                </button>
+                </motion.button>
               );
             })}
           </nav>

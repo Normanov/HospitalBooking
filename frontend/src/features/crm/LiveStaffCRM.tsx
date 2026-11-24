@@ -17,6 +17,7 @@ import {
   LoaderCircle,
   Sparkles,
 } from 'lucide-react';
+import { MagnificationDock } from '../../components/ui/MagnificationDock';
 import {
   apiRequest,
   getFreshAccessTokenForSignalR,
@@ -656,17 +657,20 @@ export const LiveStaffCRM: React.FC<LiveStaffCRMProps> = ({
           </div>
         )}
 
-        {/* Navigation Items (Single Clean List) */}
-        <nav className="mt-5 space-y-1 flex-1" aria-label="Bo‘limlar">
+        {/* Navigation Items -- spring-animated macOS dock style */}
+        <nav className="mt-5 space-y-1 flex-1" aria-label="Sections">
           {navTabs.map(({ id, label, icon: Icon, badge, alert: tabAlert }) => {
             const isActive = activeTab === id;
             return (
-              <button
+              <motion.button
                 key={id}
                 type="button"
                 onClick={() => setActiveTab(id)}
                 title={isSidebarCollapsed ? label : undefined}
-                className={`w-full flex items-center rounded-2xl py-2.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
+                whileHover={{ scale: 1.03, x: isSidebarCollapsed ? 0 : 3 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+                className={`w-full flex items-center rounded-2xl py-2.5 text-xs font-bold cursor-pointer ${
                   isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-3.5'
                 } ${
                   isActive
@@ -675,16 +679,20 @@ export const LiveStaffCRM: React.FC<LiveStaffCRMProps> = ({
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon
-                    className={`h-4 w-4 shrink-0 ${
-                      isActive ? 'text-white' : 'text-slate-500'
-                    }`}
-                  />
+                  <motion.span
+                    animate={{ scale: isActive ? 1.12 : 1 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                    className="inline-flex shrink-0"
+                  >
+                    <Icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                  </motion.span>
                   {!isSidebarCollapsed && <span className="truncate">{label}</span>}
                 </div>
 
                 {!isSidebarCollapsed && badge !== undefined && (
-                  <span
+                  <motion.span
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
                     className={`rounded-full px-2 py-0.5 text-[10px] font-mono font-bold tabular-nums ${
                       isActive
                         ? 'bg-white/20 text-white'
@@ -694,9 +702,9 @@ export const LiveStaffCRM: React.FC<LiveStaffCRMProps> = ({
                     }`}
                   >
                     {badge}
-                  </span>
+                  </motion.span>
                 )}
-              </button>
+              </motion.button>
             );
           })}
         </nav>
@@ -912,50 +920,26 @@ export const LiveStaffCRM: React.FC<LiveStaffCRMProps> = ({
       </main>
 
       {/* =========================================================================
-          3. FLOATING TRANSLUCENT iOS-STYLE BOTTOM TAB BAR (ONLY ON MOBILE)
+          3. MAGNIFICATION DOCK -- MOBILE BOTTOM NAV (macOS-inspired, spring physics)
           ========================================================================= */}
       <nav
         className="fixed bottom-4 inset-x-3 sm:inset-x-4 z-40 lg:hidden flex justify-center pointer-events-none"
         aria-label="Mobil pastki menyu"
       >
-        <div className="pointer-events-auto flex w-full max-w-sm min-w-0 items-center justify-around gap-0.5 rounded-3xl border border-white/60 bg-white/80 p-1.5 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.9)]">
-          {navTabs.slice(0, 5).map(({ id, label, icon: Icon, badge, alert: tabAlert }) => {
-            const isActive = activeTab === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setActiveTab(id)}
-                className={`relative flex min-w-0 flex-1 flex-col items-center justify-center py-2 px-1.5 sm:px-2 rounded-2xl transition-all duration-200 cursor-pointer ${
-                  isActive
-                    ? 'bg-white text-teal-700 shadow-sm font-extrabold'
-                    : 'text-slate-500 hover:text-slate-900 font-medium'
-                }`}
-              >
-                <div className="relative">
-                  <Icon
-                    className={`h-5 w-5 ${
-                      isActive ? 'text-teal-600 scale-105' : 'text-slate-500'
-                    } transition-transform`}
-                  />
-                  {badge !== undefined && (
-                    <span
-                      className={`absolute -top-1 -right-2.5 flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-black ${
-                        tabAlert
-                          ? 'bg-rose-500 text-white'
-                          : 'bg-teal-600 text-white'
-                      }`}
-                    >
-                      {badge}
-                    </span>
-                  )}
-                </div>
-                <span className="mt-1 w-full max-w-full truncate text-center text-[9px] tracking-tight">
-                  {label}
-                </span>
-              </button>
-            );
-          })}
+        <div className="pointer-events-auto w-full max-w-sm">
+          <MagnificationDock
+            panelHeight={64}
+            baseItemSize={44}
+            magnification={68}
+            distance={160}
+            items={navTabs.slice(0, 5).map(({ id, label, icon: Icon, badge, alert: tabAlert }) => ({
+              icon: <Icon className="w-5 h-5" />,
+              label: label,
+              isActive: activeTab === id,
+              badge: badge !== undefined ? String(badge) : undefined,
+              onClick: () => setActiveTab(id),
+            }))}
+          />
         </div>
       </nav>
     </div>

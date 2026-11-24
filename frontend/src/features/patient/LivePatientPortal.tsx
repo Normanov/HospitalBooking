@@ -25,6 +25,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { apiRequest, signOut } from '../../lib/api';
+import { MagnificationDock } from '../../components/ui/MagnificationDock';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -413,7 +414,7 @@ export const LivePatientPortal: React.FC<LivePatientPortalProps> = ({ fullName, 
           </div>
         </div>
 
-        {/* Nav items */}
+        {/* Nav items — spring-animated macOS dock style */}
         <nav className="flex-1 px-3 py-4 space-y-1">
           {NAV_ITEMS.map((item) => {
             const isActive = activeTab === item.id;
@@ -422,21 +423,28 @@ export const LivePatientPortal: React.FC<LivePatientPortalProps> = ({ fullName, 
                 key={item.id}
                 type="button"
                 onClick={() => handleTabChange(item.id)}
-                whileHover={{ x: 3 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all cursor-pointer text-left relative ${
+                whileHover={{ scale: 1.03, x: 4 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold cursor-pointer text-left relative ${
                   isActive
                     ? 'bg-gradient-to-r from-teal-700 to-emerald-600 text-white shadow-md shadow-teal-900/15'
                     : 'text-slate-600 hover:bg-white/60 hover:text-slate-900'
                 }`}
               >
-                <span className={isActive ? 'text-white' : 'text-slate-400'}>{item.icon}</span>
+                <motion.span
+                  animate={{ scale: isActive ? 1.15 : 1 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                  className={isActive ? 'text-white' : 'text-slate-400'}
+                >
+                  {item.icon}
+                </motion.span>
                 <span className="font-bold">{item.label}</span>
                 {isActive && (
                   <motion.span
                     layoutId="sidebarActiveIndicator"
                     className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white/70"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
               </motion.button>
@@ -1124,36 +1132,24 @@ export const LivePatientPortal: React.FC<LivePatientPortalProps> = ({ fullName, 
         </div>
       </main>
 
-      {/* ── Mobile Bottom Tab Bar ── */}
-      <nav className="lg:hidden fixed bottom-4 left-3 right-3 z-50 mx-auto w-auto max-w-sm bottom-dock rounded-[22px] px-1.5 py-2">
-        <div className="flex min-w-0 items-center gap-0.5">
-          {NAV_ITEMS.map((item) => {
-            const isActive = activeTab === item.id;
-            return (
-              <motion.button
-                key={item.id}
-                type="button"
-                onClick={() => handleTabChange(item.id)}
-                whileTap={{ scale: 0.88 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                className={`relative flex min-w-0 flex-1 flex-col items-center px-1.5 py-2 rounded-[16px] transition-all cursor-pointer ${
-                  isActive ? 'text-white' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                {isActive && (
-                  <motion.span
-                    layoutId="bottomNavIndicator"
-                    className="absolute inset-0 rounded-[16px] bg-gradient-to-r from-teal-700 to-emerald-600 shadow-lg shadow-teal-900/20"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
-                <span className="relative z-10">{item.icon}</span>
-                <span className={`relative z-10 w-full truncate text-center text-[9px] font-bold mt-0.5 tracking-wide ${isActive ? 'text-white' : ''}`}>
-                  {item.shortLabel}
-                </span>
-              </motion.button>
-            );
-          })}
+{/* -- Magnification Dock -- Mobile Bottom Nav (macOS spring physics) -- */}
+      <nav
+        className="lg:hidden fixed bottom-4 inset-x-3 sm:inset-x-4 z-50 flex justify-center pointer-events-none"
+        aria-label="Mobil pastki menyu"
+      >
+        <div className="pointer-events-auto w-full max-w-sm">
+          <MagnificationDock
+            panelHeight={64}
+            baseItemSize={44}
+            magnification={68}
+            distance={160}
+            items={NAV_ITEMS.map((item) => ({
+              icon: item.icon,
+              label: item.shortLabel,
+              isActive: activeTab === item.id,
+              onClick: () => handleTabChange(item.id),
+            }))}
+          />
         </div>
       </nav>
     </div>
@@ -1163,7 +1159,10 @@ export const LivePatientPortal: React.FC<LivePatientPortalProps> = ({ fullName, 
 // ─── Utility Components ───────────────────────────────────────────────────────
 
 function EmptyState({
-  icon, title, detail, action
+  icon,
+  title,
+  detail,
+  action,
 }: {
   icon: React.ReactNode;
   title: string;
@@ -1182,11 +1181,23 @@ function EmptyState({
   );
 }
 
-function MoneyCell({ label, value, highlight = false }: { label: string; value: number; highlight?: boolean }) {
+function MoneyCell({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: number;
+  highlight?: boolean;
+}) {
   return (
     <span className="min-w-0">
       <span className="block text-slate-400 mb-0.5">{label}</span>
-      <strong className={`block truncate font-mono font-bold tabular-nums ${highlight ? 'text-amber-700' : 'text-slate-800'}`}>
+      <strong
+        className={`block truncate font-mono font-bold tabular-nums ${
+          highlight ? 'text-amber-700' : 'text-slate-800'
+        }`}
+      >
         {formatMoney(value)}
       </strong>
     </span>
